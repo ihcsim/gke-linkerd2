@@ -1,0 +1,137 @@
+kind: Service
+apiVersion: v1
+metadata:
+  # This service is meant to be used by clients of the database. It exposes a ClusterIP that will
+  # automatically load balance connections to the different database pods.
+  name: cockroachdb-public
+  namespace: default
+  labels:
+    app: cockroachdb
+spec:
+  selector:
+    app: cockroachdb
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  - name: grpc
+    port: 26257
+    targetPort: grpc
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  # This service only exists to create DNS entries for each pod in the stateful
+  # set such that they can resolve each other's IP addresses. It does not
+  # create a load-balanced ClusterIP and should not be used directly by clients
+  # in most circumstances.
+  name: cockroachdb
+  namespace: default
+  labels:
+    app: cockroachdb
+  annotations:
+    # Use this annotation in addition to the actual publishNotReadyAddresses
+    # field below because the annotation will stop being respected soon but the
+    # field is broken in some versions of Kubernetes:
+    # https://github.com/kubernetes/kubernetes/issues/58662
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    app: cockroachdb
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+  - name: grpc
+    port: 26257
+    targetPort: grpc
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cockroachdb-startup
+  namespace: default
+  labels:
+    app: cockroachdb
+data:
+  startup.sh: |
+    #!/bin/bash
+    /cockroach/cockroach.sh start \
+      --insecure \
+      --host=${POD_NAME}.cockroachdb \
+      --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb
+
+---
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: cockroachdb
+  namespace: default
+  labels:
+    app: cockroachdb
+spec:
+  serviceName: cockroachdb
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: cockroachdb
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: cockroachdb
+        image: cockroachdb/cockroach:v2.0.3
+        command: ["/bin/bash", "-c", "/opt/cockroachdb/startup.sh"]
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: COCKROACH_CHANNEL
+          value: kubernetes-insecure
+        volumeMounts:
+        - name: data
+          mountPath: /cockroach/cockroach-data
+        - name: startup-script
+          mountPath: /opt/cockroachdb
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: grpc
+          containerPort: 26257
+        livenessProbe:
+          httpGet:
+            path: "/health"
+            port: http
+          initibalDelaySeconds: 30
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: "/health?ready=1"
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 2
+
+      volumes:
+      - name: startup-script
+        configMap:
+          name: cockroachdb-startup
+          defaultMode: 0755
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 20Gi
