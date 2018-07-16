@@ -1,16 +1,16 @@
 #!/bin/bash
 
-REGION=us-west1
-NETWORK=main
-GKE_VERSION=1.10.5-gke.0
+NETWORK=${NETWORK:-main}
+GKE_REGION=${GKE_REGION:-us-west1}
+GKE_VERSION=${GKE_VERSION:-1.10.5-gke.0}
 
 CLUSTER_IPV4_CIDR=172.16.0.0/15
 CLUSTER_SECONDARY_RANGE_NAME=pod-range
 SERIVCES_IPV4_CIDR=10.100.0.0/19
 SERVICES_SECONDARY_RANGE_NAME=service-range
 
-NODES_MIN=2
-NODES_MAX=10
+NODES_MIN=${NODE_MIN:-2}
+NODES_MAX=${NODE_MAX:-10}
 
 gcloud container clusters create main \
   --addons=HttpLoadBalancing,HorizontalPodAutoscaling,NetworkPolicy \
@@ -33,7 +33,7 @@ gcloud container clusters create main \
   --enable-autoscaling \
   --max-nodes=${NODES_MAX} \
   --min-nodes=${NODES_MIN} \
-  --region=${REGION}
+  --region=${GKE_REGION}
 
 FIRST_NODE=`kubectl get no -o jsonpath='{.items[0].metadata.name}'`
 NODES_TAG=`gcloud compute instances describe ${FIRST_NODE} --format='value(tags.items[0])'`

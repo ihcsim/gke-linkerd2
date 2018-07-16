@@ -1,5 +1,27 @@
-# GKE-101
-This repository contains scripts that I used to manage my GKE cluster.
+# GKE-Conduit
+This repository contains scripts that I used to test [conduit](https://conduit.io) on my GKE cluster.
+
+## Getting Started
+Provision a GCP custom VPC in 4 regions (us-west1, us-west2, us-east1, us-east2) and a GKE cluster:
+```
+$ make infra
+```
+
+Install conduit CLI:
+```
+$ make conduit-cli
+```
+
+Install conduit:
+```
+$ make conduit
+```
+
+Deploy applications:
+```
+$ make nginx
+$ make cockroachdb
+```
 
 ## Repository Layout
 The `infra` folder contains a set of bash scripts for creating the custom VPC, subnets, firewall rules and GKE cluster.

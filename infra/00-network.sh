@@ -1,7 +1,7 @@
 #!/bin/bash
 
-NETWORK=main
-NEWORK_MODE=${NETWORK_MODE}
+NETWORK=${NETWORK:-main}
+NEWORK_MODE=custom
 
 REGIONS=(us-west1 us-west2 us-east1 us-east4)
 
@@ -33,14 +33,3 @@ for region in "${REGIONS[@]}"; do
     --enable-private-ip-google-access \
     --secondary-range ${SECONDARY_IPV4_RANGE_NAME_POD}=${secondary_ipv4_range_pod_cidr},${SECONDARY_IPV4_RANGE_NAME_SERVICE}=${secondary_ipv4_range_service_cidr}
 done
-
-# allow all internal
-gcloud compute firewall-rules create ${NETWORK}-allow-internal \
-  --network=${NETWORK} \
-  --allow=tcp,udp,icmp \
-  --source-ranges=10.0.0.0/8
-
-# allow http and https
-gcloud compute firewall-rules create ${NETWORK}-allow-web \
-  --network=${NETWORK} \
-  --allow=tcp:80,tcp:443
