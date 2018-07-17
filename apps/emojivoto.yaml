@@ -1,0 +1,173 @@
+# source: https://raw.githubusercontent.com/runconduit/conduit-examples/master/emojivoto/emojivoto.yml
+# use ingress instead of load balancer service
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: emojivoto
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: emoji-svc
+  namespace: emojivoto
+spec:
+  selector:
+    app: emoji-svc
+  ports:
+  - name: grpc
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emoji
+  namespace: emojivoto
+spec:
+  selector:
+    matchLabels:
+      app: emoji-svc
+  strategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: emoji-svc
+    spec:
+      containers:
+      - env:
+        - name: GRPC_PORT
+          value: "8080"
+        image: buoyantio/emojivoto-emoji-svc:v4
+        name: emoji-svc
+        ports:
+        - containerPort: 8080
+          name: grpc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voting-svc
+  namespace: emojivoto
+spec:
+  selector:
+    app: voting-svc
+  ports:
+  - name: grpc
+    port: 8080
+    targetPort: 8080
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voting
+  namespace: emojivoto
+spec:
+  selector:
+    matchLabels:
+      app: voting-svc
+  template:
+    metadata:
+      labels:
+        app: voting-svc
+    spec:
+      containers:
+      - env:
+        - name: GRPC_PORT
+          value: "8080"
+        image: buoyantio/emojivoto-voting-svc:v4
+        name: voting-svc
+        ports:
+        - containerPort: 8080
+          name: grpc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-svc
+  namespace: emojivoto
+spec:
+  type: NodePort
+  selector:
+    app: web-svc
+  ports:
+  - name: http
+    port: 80
+    targetPort: http
+    nodePort: 32067
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: web-svc
+  namespace: emojivoto
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /*
+        backend:
+          serviceName: web-svc
+          servicePort: http
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: emojivoto
+spec:
+  selector:
+    matchLabels:
+      app: web-svc
+  template:
+    metadata:
+      labels:
+        app: web-svc
+    spec:
+      containers:
+      - env:
+        - name: WEB_PORT
+          value: "80"
+        - name: EMOJISVC_HOST
+          value: emoji-svc.emojivoto:8080
+        - name: VOTINGSVC_HOST
+          value: voting-svc.emojivoto:8080
+        - name: INDEX_BUNDLE
+          value: dist/index_bundle.js
+        image: buoyantio/emojivoto-web:v4
+        name: web-svc
+        ports:
+        - containerPort: 80
+          name: http
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vote-bot
+  namespace: emojivoto
+spec:
+  selector:
+    matchLabels:
+      app: vote-bot
+  template:
+    metadata:
+      labels:
+        app: vote-bot
+    spec:
+      containers:
+      - command:
+        - emojivoto-vote-bot
+        env:
+        - name: WEB_HOST
+          value: web-svc.emojivoto:80
+        image: buoyantio/emojivoto-web:v4
+        name: vote-bot

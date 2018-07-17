@@ -19,8 +19,9 @@ $ make conduit
 
 Deploy applications:
 ```
-$ make nginx
-$ make cockroachdb
+$ make apps/nginx
+$ make apps/cockroachdb
+$ make apps/emojivoto
 ```
 
 ## Repository Layout
@@ -29,3 +30,4 @@ The `infra` folder contains a set of bash scripts for creating the custom VPC, s
 The `apps` folder contains the following applications used for testing the cluster:
 * nginx - 3-replica deployment with a load balancer service
 * cockroachdb - 3-replica statefulset with dynamic storage provisioning
+* emojivoto ([src](https://raw.githubusercontent.com/runconduit/conduit-examples/master/emojivoto/emojivoto.yml)) - an emoji votes web application with an ingress frontend
