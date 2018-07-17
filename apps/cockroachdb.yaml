@@ -66,6 +66,17 @@ data:
       --join cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb
 
 ---
+kind: PodDisruptionBudget
+apiVersion: policy/v1beta1
+metadata:
+  name: cockroachdb
+spec:
+  selector:
+    matchLabels:
+      app: cockroachdb
+  minAvailable: 2
+
+---
 kind: StatefulSet
 apiVersion: apps/v1
 metadata:
