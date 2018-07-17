@@ -146,3 +146,22 @@ spec:
       resources:
         requests:
           storage: 20Gi
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cockroachdb
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: cockroachdb
+  ingress:
+  - ports:
+    - port: 26257
+    from:
+    # only allow ingress traffic from pods with this label
+    - podSelector:
+        matchLabels:
+          app: cockroachdb-client
