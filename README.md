@@ -31,3 +31,11 @@ The `apps` folder contains the following applications used for testing the clust
 * nginx - 3-replica deployment with a load balancer service
 * cockroachdb - 3-replica statefulset with dynamic storage provisioning
 * emojivoto ([src](https://raw.githubusercontent.com/runconduit/conduit-examples/master/emojivoto/emojivoto.yml)) - an emoji votes web application with an ingress frontend
+
+## Clean Up
+Delete applications:
+```
+$ make apps/nginx-delete
+$ make apps/cockroachdb-delete
+$ make apps/emojivoto-delete
+```
