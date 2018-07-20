@@ -1,4 +1,4 @@
-.PHONY: infra nginx cockroachdb linkerd2-cli
+.PHONY: infra nginx cockroachdb linkerd2-cli apps/nginx apps/nginx-delete apps/cockroachdb apps/cockroachdb-delete apps/emojivoto apps/emojivoto-delete pps/redis apps/redis-delete
 
 MY_PUBLIC_IPV4=$(shell dig +short myip.opendns.com @resolver1.opendns.com)
 
