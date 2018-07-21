@@ -1,5 +1,3 @@
-.PHONY: infra nginx cockroachdb linkerd2-cli apps/nginx apps/nginx-delete apps/cockroachdb apps/cockroachdb-delete apps/emojivoto apps/emojivoto-delete pps/redis apps/redis-delete
-
 MY_PUBLIC_IPV4=$(shell dig +short myip.opendns.com @resolver1.opendns.com)
 
 GKE_REGION ?= us-west1
@@ -56,3 +54,17 @@ apps/guestbook:
 
 apps/guestbook-delete:
 	kubectl delete -f apps/guestbook.json
+
+.PHONY: apps/stars
+apps/stars:
+	kubectl apply -f apps/stars --record
+
+.PHONY: apps/stars-delete
+apps/stars-delete:
+	kubectl delete -f apps/stars
+
+apps/stars/network-policies:
+	kubectl apply -f apps/stars/policies/deny-all.yaml
+	kubectl apply -f apps/stars/policies/allow-from-ui.yaml
+	kubectl apply -f apps/stars/policies/allow-frontend-to-backend.yaml
+	kubectl apply -f apps/stars/policies/allow-client-to-frontend.yaml
