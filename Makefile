@@ -44,3 +44,15 @@ apps/emojivoto:
 apps/emojivoto-delete:
 	kubectl delete -f apps/emojivoto.yaml
 	gcloud compute firewall-rules delete gke-$(NETWORK)-allow-http-emojivoto
+
+apps/redis:
+	linkerd inject apps/redis.json | kubectl apply -f - --record
+
+apps/redis-delete:
+	kubectl delete -f - apps/redis.json
+
+apps/guestbook:
+	linkerd inject apps/guestbook.json | kubectl apply -f - --record
+
+apps/guestbook-delete:
+	kubectl delete -f apps/guestbook.json
