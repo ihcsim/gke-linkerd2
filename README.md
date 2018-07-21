@@ -1,5 +1,5 @@
-# GKE-Conduit
-This repository contains scripts that I used to test [conduit](https://conduit.io) on my GKE cluster.
+# GKE-Linkerd2
+This repository contains scripts that I used to test [Linkerd2](https://conduit.io) on my GKE cluster.
 
 ## Getting Started
 Provision a GCP custom VPC in 4 regions (us-west1, us-west2, us-east1, us-east2) and a GKE cluster:
