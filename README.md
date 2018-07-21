@@ -28,9 +28,11 @@ $ make apps/emojivoto
 The `infra` folder contains a set of bash scripts for creating the custom VPC, subnets, firewall rules and GKE cluster.
 
 The `apps` folder contains the following applications used for testing the cluster:
-* nginx - 3-replica deployment with a load balancer service
+* nginx ([src](https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/advanced-policy)) - 3-replica deployment with a load balancer service and network policies
 * cockroachdb - 3-replica statefulset with dynamic storage provisioning
 * emojivoto ([src](https://raw.githubusercontent.com/runconduit/conduit-examples/master/emojivoto/emojivoto.yml)) - an emoji votes web application with an ingress frontend
+* guestbook + redis ([src](https://docs.aws.amazon.com/eks/latest/userguide/getting-started.html)) - the guestbook application from the EKS _Getting Started_ docs
+* stars ([src](https://docs.projectcalico.org/v3.1/getting-started/kubernetes/tutorials/stars-policy/)) - the Calico _stars policy_ demo
 
 ## Clean Up
 Delete applications:

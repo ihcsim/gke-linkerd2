@@ -21,12 +21,17 @@ linkerd2-cli:
 linkerd2-dashboard:
 	linkerd dashboard
 
+.PHONY: apps/nginx
 apps/nginx:
-	linkerd inject apps/nginx.yaml | kubectl apply -f - --record
+	kubectl apply -f apps/nginx --record
 	gcloud compute firewall-rules create gke-$(NETWORK)-allow-http-nginx --network=$(NETWORK) --allow=tcp:32065 --source-ranges=$(MY_PUBLIC_IPV4)/32
 
+.PHONY: apps/nginx/policies
+apps/nginx/policies:
+	kubectl apply -f apps/nginx/policies --record
+
 apps/nginx-delete:
-	kubectl delete -f apps/nginx.yaml
+	kubectl delete -f apps/nginx
 	gcloud compute firewall-rules delete gke-$(NETWORK)-allow-http-nginx
 
 apps/cockroachdb:
@@ -64,7 +69,7 @@ apps/stars-delete:
 	kubectl delete -f apps/stars
 
 apps/stars/network-policies:
-	kubectl apply -f apps/stars/policies/deny-all.yaml
-	kubectl apply -f apps/stars/policies/allow-from-ui.yaml
-	kubectl apply -f apps/stars/policies/allow-frontend-to-backend.yaml
-	kubectl apply -f apps/stars/policies/allow-client-to-frontend.yaml
+	kubectl apply -f apps/stars/policies/deny-all.yaml --record
+	kubectl apply -f apps/stars/policies/allow-from-ui.yaml --record
+	kubectl apply -f apps/stars/policies/allow-frontend-to-backend.yaml --record
+	kubectl apply -f apps/stars/policies/allow-client-to-frontend.yaml --record
