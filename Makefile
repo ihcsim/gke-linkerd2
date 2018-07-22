@@ -73,3 +73,11 @@ apps/stars/network-policies:
 	kubectl apply -f apps/stars/policies/allow-from-ui.yaml --record
 	kubectl apply -f apps/stars/policies/allow-frontend-to-backend.yaml --record
 	kubectl apply -f apps/stars/policies/allow-client-to-frontend.yaml --record
+
+apps/tiller:
+	kubectl create serviceaccount tiller -n kube-system
+	kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+	helm init --service-account=tiller --dry-run --debug | linkerd inject - | kubectl apply -f -
+
+apps/tiller-delete:
+	kubectl delete deploy,svc -l name=tiller -n kube-system
