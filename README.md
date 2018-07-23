@@ -7,6 +7,16 @@ Provision a GCP custom VPC in 4 regions (us-west1, us-west2, us-east1, us-east2)
 $ make infra
 ```
 
+Create managed DNS zone:
+```
+$ DNS_DOMAIN=<dns_domain> make infra/managed-zones
+```
+
+Deploy [ExternalDNS](https://github.com/kubernetes-incubator/external-dns):
+```
+$ PROVIDER=google make external-dns
+```
+
 Install conduit CLI:
 ```
 $ make conduit-cli
@@ -22,6 +32,9 @@ Deploy applications:
 $ make apps/nginx
 $ make apps/cockroachdb
 $ make apps/emojivoto
+$ make apps/redis
+$ make apps/guestbook
+$ make apps/stars
 ```
 
 ## Repository Layout
@@ -40,4 +53,7 @@ Delete applications:
 $ make apps/nginx-delete
 $ make apps/cockroachdb-delete
 $ make apps/emojivoto-delete
+$ make apps/redis-delete
+$ make apps/guestbook-delete
+$ make apps/stars-delete
 ```

@@ -6,11 +6,22 @@ GKE_NODE_MIN ?= 2
 GKE_NODE_MAX ?= 10
 
 NETWORK ?= main
+CLUSTER_NAME ?= main
 
+.PHONY: infra
 infra:
 	NETWORK=$(NETWORK) ./infra/00-network.sh
 	NETWORK=$(NETWORK) ./infra/01-firewalls.sh
-	NETWORK=$(NETWORK) GKE_REGION=$(GKE_REGION) GKE_VERSION=$(GKE_VERSION) NODE_MIN=$(GKE_NODE_MIN) NODE_MAX=$(GKE_NODE_MAX) ./infra/02-gke.sh
+	NETWORK=$(NETWORK) GKE_REGION=$(GKE_REGION) GKE_VERSION=$(GKE_VERSION) NODE_MIN=$(GKE_NODE_MIN) NODE_MAX=$(GKE_NODE_MAX) CLUSTER_NAME=$(CLUSTER_NAME) ./infra/02-gke.sh
+
+infra/managed-zones:
+	ZONE_NAME=$(ZONE_NAME) DNS_DOMAIN=$(DNS_DOMAIN) ./infra/04-managed-dns.sh
+
+infra/external-dns:
+	./infra/05-external-dns.sh
+
+infra/external-dns-delete:
+	kubectl delete -f apps/external-dns.yaml
 
 linkerd2:
 	./infra/03-linkerd2.sh
@@ -52,7 +63,7 @@ apps/redis:
 	linkerd inject apps/redis.json | kubectl apply -f - --record
 
 apps/redis-delete:
-	kubectl delete -f - apps/redis.json
+	kubectl delete -f apps/redis.json
 
 apps/guestbook:
 	linkerd inject apps/guestbook.json | kubectl apply -f - --record
