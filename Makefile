@@ -41,8 +41,8 @@ linkerd2-dashboard:
 
 .PHONY: apps/nginx
 apps/nginx:
-	kubectl apply -f apps/nginx --record
-	gcloud compute firewall-rules create gke-$(NETWORK)-allow-http-nginx --network=$(NETWORK) --allow=tcp:32065 --source-ranges=$(MY_PUBLIC_IPV4)/32
+	linkerd inject apps/nginx/nginx.yaml --tls=optional | kubectl apply -f - --record
+	gcloud compute firewall-rules create gke-$(NETWORK)-allow-http-nginx --network=$(NETWORK) --allow=tcp:80 --source-ranges=$(MY_PUBLIC_IPV4)/32
 
 .PHONY: apps/nginx/policies
 apps/nginx/policies:
@@ -53,13 +53,13 @@ apps/nginx-delete:
 	gcloud compute firewall-rules delete gke-$(NETWORK)-allow-http-nginx
 
 apps/cockroachdb:
-	linkerd inject apps/cockroachdb.yaml | kubectl apply -f - --record
+	linkerd inject --tls=optional apps/cockroachdb.yaml | kubectl apply -f - --record
 
 apps/cockroachdb-delete:
 	kubectl delete -f apps/cockroachdb.yaml
 
 apps/emojivoto:
-	linkerd inject apps/emojivoto.yaml | kubectl apply -f - --record
+	linkerd inject --tls=optional apps/emojivoto.yaml | kubectl apply -f - --record
 	gcloud compute firewall-rules create gke-$(NETWORK)-allow-http-emojivoto --network=$(NETWORK) --allow=tcp:32067 --source-ranges=$(MY_PUBLIC_IPV4)/32
 
 apps/emojivoto-delete:
@@ -67,13 +67,13 @@ apps/emojivoto-delete:
 	gcloud compute firewall-rules delete gke-$(NETWORK)-allow-http-emojivoto
 
 apps/redis:
-	linkerd inject apps/redis.json | kubectl apply -f - --record
+	linkerd inject --tls=optional apps/redis.json | kubectl apply -f - --record
 
 apps/redis-delete:
 	kubectl delete -f apps/redis.json
 
 apps/guestbook:
-	linkerd inject apps/guestbook.json | kubectl apply -f - --record
+	linkerd inject --tls=optional apps/guestbook.json | kubectl apply -f - --record
 
 apps/guestbook-delete:
 	kubectl delete -f apps/guestbook.json
@@ -95,7 +95,7 @@ apps/stars/network-policies:
 apps/tiller:
 	kubectl create serviceaccount tiller -n kube-system
 	kubectl create clusterrolebinding tiller --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-	helm init --service-account=tiller --dry-run --debug | linkerd inject - | kubectl apply -f -
+	helm init --service-account=tiller --dry-run --debug | linkerd inject --tls=optional - | kubectl apply -f -
 
 apps/tiller-delete:
 	kubectl delete deploy,svc -l name=tiller -n kube-system
