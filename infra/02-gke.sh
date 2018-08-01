@@ -57,3 +57,8 @@ gcloud compute firewall-rules create gke-${NETWORK}-allow-ssh \
   --allow=tcp:22 \
   --target-tags=${NODES_TAG} \
   --source-ranges=${MY_PUBLIC_IPV4}/32
+
+# allow current user to create cluster roles
+kubectl create clusterrolebinding cluster-admin-binding-$USER \
+  --clusterrole cluster-admin \
+  --user `gcloud config get-value account`

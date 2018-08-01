@@ -17,14 +17,14 @@ Deploy [ExternalDNS](https://github.com/kubernetes-incubator/external-dns):
 $ PROVIDER=google make external-dns
 ```
 
-Install conduit CLI:
+Install linkerd CLI:
 ```
-$ make conduit-cli
+$ make linkerd-cli
 ```
 
-Install conduit:
+Install linkerd:
 ```
-$ make conduit
+$ make linkerd
 ```
 
 Deploy applications:

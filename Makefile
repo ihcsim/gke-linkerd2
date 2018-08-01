@@ -8,6 +8,9 @@ GKE_NODE_MAX ?= 10
 NETWORK ?= main
 CLUSTER_NAME ?= main
 
+DEFAULT_POOL_SIZE ?= 3
+EXTERNAL_DNS_POOL_SIZE ?= 1
+
 .PHONY: infra
 infra:
 	NETWORK=$(NETWORK) ./infra/00-network.sh
@@ -15,19 +18,23 @@ infra:
 	NETWORK=$(NETWORK) GKE_REGION=$(GKE_REGION) GKE_VERSION=$(GKE_VERSION) NODE_MIN=$(GKE_NODE_MIN) NODE_MAX=$(GKE_NODE_MAX) CLUSTER_NAME=$(CLUSTER_NAME) ./infra/02-gke.sh
 
 infra/managed-zones:
-	ZONE_NAME=$(ZONE_NAME) DNS_DOMAIN=$(DNS_DOMAIN) ./infra/04-managed-dns.sh
+	gcloud dns managed-zones create $(ZONE_NAME) --description "Managed by ExternalDNS" --dns-name $(DNS_DOMAIN)
 
 infra/external-dns:
-	./infra/05-external-dns.sh
+	cat apps/external-dns.yaml | linkerd inject - --tls=optional | kubectl apply -f -
 
 infra/external-dns-delete:
 	kubectl delete -f apps/external-dns.yaml
 
+infra/cluster/resize:
+	gcloud container clusters resize $(NETWORK) --region=$(GKE_REGION) --node-pool=default-pool --size=$(DEFAULT_POOL_SIZE)
+	gcloud container clusters resize $(NETWORK) --region=$(GKE_REGION) --node-pool=external-dns-pool --size=$(EXTERNAL_DNS_POOL_SIZE)
+
 linkerd2:
-	./infra/03-linkerd2.sh
+	kubectl apply -f apps/linkerd2.yaml
 
 linkerd2-cli:
-	curl https://run.conduit.io/install | sh
+	kubectl delete -f apps/linkerd2.yaml
 
 linkerd2-dashboard:
 	linkerd dashboard
