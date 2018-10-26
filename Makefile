@@ -59,11 +59,11 @@ apps/cockroachdb-delete:
 	kubectl delete -f apps/cockroachdb.yaml
 
 apps/emojivoto:
-	linkerd inject --tls=optional apps/emojivoto.yaml | kubectl apply -f - --record
+	linkerd inject --tls=optional apps/emojivoto-v4.yaml | kubectl apply -f - --record
 	gcloud compute firewall-rules create gke-$(NETWORK)-allow-http-emojivoto --network=$(NETWORK) --allow=tcp:32067 --source-ranges=$(MY_PUBLIC_IPV4)/32
 
 apps/emojivoto-delete:
-	kubectl delete -f apps/emojivoto.yaml
+	kubectl delete -f apps/emojivoto-v4.yaml
 	gcloud compute firewall-rules delete gke-$(NETWORK)-allow-http-emojivoto
 
 apps/redis:
